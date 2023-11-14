@@ -110,39 +110,6 @@ print("Data_of_Interest type = {}".format(type(Data_of_Interest)))
 
 StudyDir = r"E:\NTCP_trials\Sectors_2_Targets"
 Data_of_Interest.to_csv(os.path.join(StudyDir, "Data_of_Interest_before_R.csv"), index=False)
-# #----------------------------------------------------------------------------------
-# # run univariable Logistic regression analysis
-# # this code is inspired from https://medium.com/analytics-vidhya/calling-r-from-python-magic-of-rpy2-d8cbbf991571
-# from rpy2 import robjects
-# from rpy2.robjects import pandas2ri
-# #from rpy2.robjects.packages import importr
-#
-# # Defining the R script and loading the instance in Python
-# r = robjects.r
-#
-# #converting df into r object for passing into r function
-# with robjects.robject.conversion.localconverter(robjects.default_converter + pandas2ri.converter):
-#     df_r = robjects.conversion.py2ri(Data_of_Interest)
-#
-#     # transform all features
-#     CodePath = 'C:\Program Files Extra\RT_Work\R_Code\mfp.R'
-#     FunctionName = 'Transform_Features'
-#     InputsDict = {"data": df_r, "candidates": X_Columns, "endpoint": "Retinopathy_Flag"}
-#     Features_Transformation = R_Routine(r, CodePath, FunctionName, InputsDict)
-#
-#     iOCT_Print_Results_Univariable_Transformation(Features_Transformation, os.path.join(StudyDir, "Transform_OverallFeatures.txt"))
-#
-#
-#
-#
-# # use python to perform univariate analysis (only - no transformations)
-# python_glm_file = os.path.join(StudyDir, "python_glm_file_bic_llf_Overall.txt")
-# print("Start glm")
-# dev_AIC_BIC_list, Classification_Reports_list = Perform_Univariable_glm(Data_of_Interest, X_Columns, EndPoint="Retinopathy_Flag", python_glm_file=python_glm_file, Target_Report="class_1")
-#
-# Classification_Report_Plot(Classification_Reports_list, PredictorsList=[x['Predictor'] for x in dev_AIC_BIC_list], SaveDir=StudyDir)
-#
-# Data_of_Interest.to_csv(os.path.join(StudyDir, "Data_of_Interest.csv"), index=False)
-#
-# # CR = Classification_Reports_list[0]
+
+
 print("Done: go use test.Rmd in R_Code folder then back to python to use Univariable_Analysis_ApplyVariableTransform.py")

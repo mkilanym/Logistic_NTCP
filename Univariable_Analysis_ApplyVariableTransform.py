@@ -36,7 +36,6 @@ from sklearn.model_selection import train_test_split
 #from sklearn.experimental import enable_iterative_imputer
 #from sklearn.impute import IterativeImputer, SimpleImputer
 
-import NTCP_Descriptive_Analysis_Class as NTCPClass
 #from R_Routine import *
 from Print_Results import *
 from Calibration_Evaluation_Plots_Class import *
@@ -47,14 +46,10 @@ import statsmodels.api as sm
 
 
 # Load Data
-StudyDir = r"E:\NTCP_trials\OverallFeatures_2_Targets"
+StudyDir = r"E:\NTCP_trials\NTCP_Per_Sector_2_Targets\farPeriphery_I"
 Data_of_Interest = pd.read_csv(os.path.join(StudyDir, "Transformed_Data_from_R.csv"))
 X_Columns = list(set(list(Data_of_Interest.columns)) - set(["Retinopathy_Flag"]))
 
-
-
-
-X_Columns = list(set(list(Data_of_Interest.columns)) - set(["Retinopathy_Flag"]))
 
 
 # use python to perform univariate analysis (only - no transformations)
@@ -80,4 +75,4 @@ Classification_Report_Plot(Classification_Reports_list, PredictorsList=[x['Predi
 #     pickle.dump(dev_AIC_BIC_list, f)
 
 print("Done. go to Preselect_One_Predictor_Per_Sector.py in case of too many sectors features.")
-print("Done. go to Multicolinearity.py")
+print("Done. go to Multicolinearity_Considering_ImbalancedData.py")

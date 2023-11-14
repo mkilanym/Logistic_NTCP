@@ -10,11 +10,18 @@ import numpy as np
 import pandas as pd
 import pickle
 from Calibration_Evaluation_Plots_Class import Perform_Univariable_glm
+import NTCP_Descriptive_Analysis_Class as NTCPClass
+
 
 
 # Load Data
 StudyDir = r"E:\NTCP_trials\Sectors_2_Targets"
-Data_of_Interest = pd.read_csv(os.path.join(StudyDir, "Transformed_Data_of_Interest.csv"))
+Data_of_Interest = pd.read_csv(os.path.join(StudyDir, "Transformed_Data_from_R.csv"))
+
+# Remove NaN column & Remove the space in the column's name
+NTCPClass.Remove_Nan_Column_And_Space_From_ColumnName(Data_of_Interest)
+
+
 X_Columns = list(set(list(Data_of_Interest.columns)) - set(["Retinopathy_Flag"]))
 
 Sectors_Names =["macular_", "perimacular_ST_", "perimacular_SN_",

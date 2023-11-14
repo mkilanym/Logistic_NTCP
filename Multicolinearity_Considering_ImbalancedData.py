@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# https://blog.rtwilson.com/regression-in-python-using-r-style-formula-its-easy/
 """
-Created on Mon Jul 10 19:07:42 2023
+Created on Mon Nov 13 15:46:22 2023
 
 @author: mkmahassan
 """
@@ -25,7 +24,7 @@ from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix
 
 # from collections import Counter
-# from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE
 # from imblearn.pipeline import Pipeline
 
 from sklearn.feature_selection import SelectFromModel
@@ -38,6 +37,7 @@ from sklearn.model_selection import train_test_split
 #from sklearn.experimental import enable_iterative_imputer
 #from sklearn.impute import IterativeImputer, SimpleImputer
 
+
 from Feature_Selection_Class_MultiColinearity import Split_Predictors_into_Groups, forward_selected
 from Feature_Selection_Class_MultiColinearity import Prepare_PredictorsSet_AfterSplitFunction
 from Feature_Selection_Class_MultiColinearity import Select_Potential_Submodels
@@ -47,7 +47,7 @@ from Model_Composition_Class import Average_SubModels_Coeffs, Analytical_Logisti
 from Model_Evaluation import Logistic_Model_Performance_at_Variuos_BinaryThreshold
 
 from Print_Results import iOCT_Print_Results_From_List_of_models
-
+import NTCP_Descriptive_Analysis_Class as NTCPClass
 # from Calibration_Evaluation_Plots_Class import *
 # import utils_imbalanced_Classification as utils
 
@@ -55,8 +55,18 @@ from Print_Results import iOCT_Print_Results_From_List_of_models
 
 
 # Load Data
-StudyDir = r"E:\NTCP_trials\NTCP_Per_Sector_2_Targets\perimacular_SN"
+StudyDir = r"E:\NTCP_trials\Sectors_2_Targets"
+
+Composite_Model_Folder = os.path.join(StudyDir, "Composite_Model_Folder_ConsideringImbalancedData")
+os.makedirs(Composite_Model_Folder, exist_ok=True)
+
+
 Data_of_Interest = pd.read_csv(os.path.join(StudyDir, "Transformed_Data_from_R.csv"))
+
+# Remove NaN column & Remove the space in the column's name
+NTCPClass.Remove_Nan_Column_And_Space_From_ColumnName(Data_of_Interest)
+
+
 X_Columns = list(set(list(Data_of_Interest.columns)) - set(["Retinopathy_Flag"]))
 
 # Use selected predictor per sector if exist
@@ -79,12 +89,20 @@ Groups = Split_Predictors_into_Groups(corr_matrix.values, Threshold=0.7)
 
 Groups_dict = Prepare_PredictorsSet_AfterSplitFunction(X_Columns, Groups)
 
+# create virtual balanced data
+over = SMOTE(k_neighbors=1)
+Transformed_X, Transformed_y = over.fit_resample(Data_of_Interest[X_Columns].values, Data_of_Interest["Retinopathy_Flag"].values)
+Transformed_y = np.reshape(Transformed_y,(-1,1))
+Appended_Transformed_Data = np.append(Transformed_X, Transformed_y, axis=1)
+OverSampled_DF = pd.DataFrame(Appended_Transformed_Data, columns=X_Columns+["Retinopathy_Flag"])        
+        
 subModels = []
 for k in Groups_dict.keys():
+    print("work on group {}".format(k))
     groupPredictor = Groups_dict[k]
-    subModels.append(forward_selected(Data_of_Interest[groupPredictor+["Retinopathy_Flag"]], "Retinopathy_Flag"))
+    subModels.append(forward_selected(OverSampled_DF[groupPredictor+["Retinopathy_Flag"]], "Retinopathy_Flag"))
 
-iOCT_Print_Results_From_List_of_models(subModels, os.path.join(StudyDir, "Results_of_Stepwise_Logistic_Regression_BIC.txt"))
+iOCT_Print_Results_From_List_of_models(subModels, os.path.join(Composite_Model_Folder, "Results_of_Stepwise_Logistic_Regression_BIC.txt"))
 
 # filter out the submodels
 FilteredModels, Selected_Groups = Select_Potential_Submodels(subModels, Groups_dict)
@@ -101,9 +119,8 @@ Performance_List = Logistic_Model_Performance_at_Variuos_BinaryThreshold(Data_of
 
 Best_Threshold_Performance = Performance_List[-1]
 
+# Data_of_Interest.plot.scatter("midPeriphery_IN_D50","Retinopathy_Flag")
 # save model info
-Composite_Model_Folder = os.path.join(StudyDir, "Composite_Model_Folder")
-os.makedirs(Composite_Model_Folder, exist_ok=True)
 
 meanCoeff.to_csv(os.path.join(Composite_Model_Folder, "meanCoeff.csv"))
 with open(os.path.join(Composite_Model_Folder, "FilteredModels.pkl"), 'wb') as f:
@@ -114,20 +131,6 @@ with open(os.path.join(Composite_Model_Folder, "Best_Threshold_Performance.pkl")
     pickle.dump(Best_Threshold_Performance, f)
 
 
-# Data_of_Interest.plot.scatter("midPeriphery_ST_V20", "Retinopathy_Flag")
 
-## StudyDir = r"E:\NTCP_trials\NTCP_Per_Sector_2_Targets\farPeriphery_I"
-## Composite_Model_Folder = os.path.join(StudyDir, "Composite_Model_Folder")
-## with open(os.path.join(Composite_Model_Folder, "Best_Threshold_Performance.pkl"), 'rb') as f:
-##     loaded_list_of_dicts = pickle.load(f)
 
 print("Done: go to internal validation code")
-
-
-
-# test code to find unique models based on the variables names
-# A = [1,2,3]
-# B = [10,2,3,5]
-# C = [1,2,3]
-# unique = [list(x) for x in set(tuple(x) for x in [A,B,C])]
-# print(unique)
